@@ -38,10 +38,16 @@ test:
 deploy:
   stage: deploy
   script:
-    - echo "Deploying to Kubernetes...."
-    - kubectl config current-context
+deploy:
+  stage: deploy
+  script:
+    - echo "$KUBECONFIG_FILE" | base64 --decode > ~/.kube/config
+    - kubectl config get-contexts  # Debugging: Check if context is set
+    - kubectl config use-context my-cluster
     - kubectl apply -f k8s/deployment.yaml
     - kubectl set image deployment/helloworld-deployment helloworld=$IMAGE_NAME:$IMAGE_TAG -n backend
+
+
   only:
     - main
 
