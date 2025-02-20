@@ -37,11 +37,17 @@ test:
 # Deploy to Kubernetes
 deploy:
   stage: deploy
+  image: amazon/aws-cli:latest  # AWS CLI image to authenticate with EKS
+  before_script:
+    - mkdir -p ~/.kube
+    - echo "$KUBECONFIG_FILE" | base64 --decode > ~/.kube/config  # Load kubeconfig
+    - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+    - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+    - aws configure set region $AWS_DEFAULT_REGION
+    - aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name my-cluster  # Ensure kubectl can authenticate
+ 
   script:
-deploy:
-  stage: deploy
-  script:
-    - echo "$KUBECONFIG_FILE" | base64 --decode > ~/.kube/config
+   # - echo "$KUBECONFIG_FILE" | base64 --decode > ~/.kube/config
     - kubectl config get-contexts  # Debugging: Check if context is set
     - kubectl config use-context arn:aws:eks:eu-north-1:940482437723:cluster/my-cluster
     - kubectl apply -f k8s/deployment.yaml
