@@ -39,6 +39,7 @@ deploy:
   stage: deploy
   script:
     - echo "Deploying to Kubernetes..."
+    - kubectl config current-context
     - kubectl apply -f k8s/deployment.yaml
     - kubectl set image deployment/helloworld-deployment helloworld=$IMAGE_NAME:$IMAGE_TAG -n backend
   only:
