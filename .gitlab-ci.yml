@@ -26,16 +26,11 @@ build:
 # Test the application (run python directly)
 test:
   stage: test
-  image: python:3.9-slim
-  script:
-build:
-  stage: build
   script:
     - echo "Installing Python..."
     - apt-get update && apt-get install -y python3
     - echo "Running Python script..."
     - python3 -m py_compile helloworld.py
-
   only:
     - main
 
