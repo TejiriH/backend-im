@@ -1,0 +1,13 @@
+stages:
+  - test
+  - deploy
+
+test-job:
+  stage: test
+  script:
+    - echo "Running tests"
+
+deploy-job:
+  stage: deploy
+  script:
+    - echo "Deploying to Kubernetes"
