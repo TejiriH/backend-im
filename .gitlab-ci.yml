@@ -43,7 +43,7 @@ deploy:
   script:
     - echo "$KUBECONFIG_FILE" | base64 --decode > ~/.kube/config
     - kubectl config get-contexts  # Debugging: Check if context is set
-    - kubectl config use-context my-cluster
+    - kubectl config use-context arn:aws:eks:eu-north-1:940482437723:cluster/my-cluster
     - kubectl apply -f k8s/deployment.yaml
     - kubectl set image deployment/helloworld-deployment helloworld=$IMAGE_NAME:$IMAGE_TAG -n backend
 
