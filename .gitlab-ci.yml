@@ -13,7 +13,8 @@ build:
   stage: build
   script:
     - echo "Logging in to Docker..."
-    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_PASSWORD $REGISTRY  # Authenticate with Docker
+    - echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USER --password-stdin $REGISTRY
+      #    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_PASSWORD $REGISTRY  # Authenticate with Docker
     - echo "Building Docker image..."
     - docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG .  # Tag image with unique commit SHA
     - docker push $REGISTRY/$IMAGE_NAME:$IMAGE_TAG
