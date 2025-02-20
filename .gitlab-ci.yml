@@ -14,8 +14,10 @@ build:
   script:
     - echo "REGISTRY is $REGISTRY"  # Debugging line to check if REGISTRY is set correctly
     - echo "Logging in to Docker..."
-    - echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USER --password-stdin $REGISTRY
+      #    - echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USER --password-stdin $REGISTRY
       #    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_PASSWORD $REGISTRY  # Authenticate with Docker
+    - docker logout
+    - docker login -u $DOCKER_REGISTRY_USER --password-stdin
     - echo "Building Docker image..."
     - docker build -t $IMAGE_NAME:$IMAGE_TAG .  # Tag image with unique commit SHA
     - docker push $IMAGE_NAME:$IMAGE_TAG
