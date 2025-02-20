@@ -1,13 +1,40 @@
 stages:
+  - build
   - test
   - deploy
 
-test-job:
-  stage: test
-  script:
-    - echo "Running tests"
+variables:
+  IMAGE_TAG: "$CI_COMMIT_SHA"  # Using the commit SHA to ensure unique tags
+  REGISTRY: your-registry
+  IMAGE_NAME: helloworld
 
-deploy-job:
+# Build the Docker image
+build:
+  stage: build
+  script:
+    - echo "Logging in to Docker..."
+    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_PASSWORD $REGISTRY  # Authenticate with Docker
+    - echo "Building Docker image..."
+    - docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG .  # Tag image with unique commit SHA
+    - docker push $REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+
+# Test the application (run python directly)
+test:
+  stage: test
+  image: python:3.9-slim
+  script:
+    - echo "Running Python script..."
+    - python -m py_compile helloworld.py
+  only:
+    - main
+
+# Deploy to Kubernetes
+deploy:
   stage: deploy
   script:
-    - echo "Deploying to Kubernetes"
+    - echo "Deploying to Kubernetes..."
+    - kubectl apply -f k8s/deployment.yaml
+    - kubectl set image deployment/helloworld-deployment helloworld=$REGISTRY/$IMAGE_NAME:$IMAGE_TAG -n backend
+  only:
+    - main
+
