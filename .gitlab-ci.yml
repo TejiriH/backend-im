@@ -5,7 +5,7 @@ stages:
 
 variables:
   IMAGE_TAG: "$CI_COMMIT_SHA"  # Using the commit SHA to ensure unique tags
-  REGISTRY: your-registry
+  REGISTRY: tejirih/helloworld
   IMAGE_NAME: helloworld
 
 # Build the Docker image
