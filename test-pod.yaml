@@ -14,6 +14,8 @@ spec:
         apt update && apt install -y git
         git clone https://github.com/TejiriH/backend-im.git /workspace
         cd /workspace
+        pip install --upgrade pip
+        pip install pytest
         pip install -r requirements.txt
         pytest helloworld.py
     volumeMounts:
