@@ -1,48 +1,41 @@
-name: CI Pipeline
+name: Run WebSocket Client
 
 on:
   push:
     branches:
-      - main
+      - main  # Adjust this based on your workflow
 
 jobs:
-  test-and-deploy:
+  websocket-test:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"  # Ensure it matches your local environment
 
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        sudo apt-get install -y kubectl
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # Ensure websockets is included
+          pip install websockets  # Install explicitly if missing
 
-    - name: Trigger Orchestration App to manage test pod
-      run: |
-        python3 -c "
-        import asyncio
-        import json
-        import websockets
+      - name: Set Commit ID
+        run: echo "COMMIT_ID=$(git rev-parse HEAD)" >> $GITHUB_ENV  # Get latest commit ID
 
-        async def trigger_orchestration():
-            async with websockets.connect('ws://51.20.124.73:8080/ws') as websocket:
-                commit_data = json.dumps({'commit_id': '${{ github.sha }}'})
-                await websocket.send(commit_data)
-                response = await websocket.recv()
-                print('Response from Orchestration App:', response)
+      - name: Run WebSocket Client
+        env:
+          COMMIT_ID: ${{ env.COMMIT_ID }}
+        run: python3 client.py
 
-        asyncio.run(trigger_orchestration())
-        "
 
-    - name: Deploy to production (if tests pass)
-      if: success()  # Only trigger the deployment if tests passed
-      run: |
-        kubectl apply -f production-pod.yaml  # Apply the dynamic pod config to deploy the code
-        kubectl wait --for=condition=ready pod/production-pod  # Wait for the pod to be ready
-        kubectl logs production-pod  # Retrieve logs from the pod to confirm it ran successfully
+      - name: Deploy to production (if tests pass)
+        if: success()  # Only trigger the deployment if tests passed
+        run: |
+          kubectl apply -f production-pod.yaml  # Apply the dynamic pod config to deploy the code
+          kubectl wait --for=condition=ready pod/production-pod  # Wait for the pod to be ready
+          kubectl logs production-pod  # Retrieve logs from the pod to confirm it ran successfully
