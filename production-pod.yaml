@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: production-pod
-  namespace: test-environment  # Ensure you're using the correct namespace
+  namespace: prod-env  # Ensure you're using the correct namespace
 spec:
   restartPolicy: Never
   containers:
