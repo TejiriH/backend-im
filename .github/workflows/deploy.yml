@@ -31,11 +31,3 @@ jobs:
         env:
           COMMIT_ID: ${{ env.COMMIT_ID }}
         run: python3 client.py
-
-
-      - name: Deploy to production (if tests pass)
-        if: success()  # Only trigger the deployment if tests passed
-        run: |
-          kubectl apply -f production-pod.yaml  # Apply the dynamic pod config to deploy the code
-          kubectl wait --for=condition=ready pod/production-pod  # Wait for the pod to be ready
-          kubectl logs production-pod  # Retrieve logs from the pod to confirm it ran successfully
