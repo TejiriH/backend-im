@@ -30,4 +30,9 @@ jobs:
       - name: Run WebSocket Client
         env:
           COMMIT_ID: ${{ env.COMMIT_ID }}
+          run: python3 client.py
+<<<<<<< HEAD
         run: python3 client.py
+=======
+        run: python3 client.py
+>>>>>>> baf39b0 (adjust)
