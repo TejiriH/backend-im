@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: production-pod
+  namespace: test-environment  # Ensure you're using the correct namespace
+spec:
+  restartPolicy: Never
+  containers:
+    - name: code-runner
+      image: python:3.9  # Python base image to run your code
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          # Update system and install git
+          apt update && apt install -y git
+          
+          # Clone the code repository
+          git clone https://github.com/TejiriH/backend-im.git /workspace
+          
+          # Navigate into the project directory
+          cd /workspace
+          
+          # Install dependencies (if not already done by the test pod)
+          pip install --upgrade pip
+          pip install -r requirements.txt  # Install Python dependencies from the repo
+          
+          # Run the actual code (helloworld.py)
+          python helloworld.py  # This will run your application script
+
+      volumeMounts:
+        - name: workspace-volume
+          mountPath: /workspace  # Mount the code inside the pod
+
+  volumes:
+    - name: workspace-volume
+      emptyDir: {}  # Temporary storage for the repository and code inside the pod
+
