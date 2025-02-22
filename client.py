@@ -11,7 +11,7 @@ async def send_commit():
             print("No commit ID provided.")
             return
 
-        async with websockets.connect("ws://51.20.124.73:8080/ws") as websocket:
+        async with websockets.connect("ws://51.20.136.91:8080/ws") as websocket:
             commit_data = json.dumps({"commit_id": commit_id})
             await websocket.send(commit_data)
 
