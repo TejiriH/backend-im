@@ -31,7 +31,6 @@ def generate_unique_pod_name(commit_id):
     random_str = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
     return f"test-runner-{commit_id}-{timestamp}-{random_str}"
 
-# Function to deploy a production pod
 def deploy_production(commit_id):
     pod_name = f"production-pod-{commit_id}"
     print(f"🚀 Deploying production pod {pod_name} in namespace {NAMESPACE_PROD}...")
@@ -40,12 +39,16 @@ def deploy_production(commit_id):
         metadata=client.V1ObjectMeta(name=pod_name, namespace=NAMESPACE_PROD),
         spec=client.V1PodSpec(
             restart_policy="Always",
+            init_containers=[client.V1Container(
+                name="init-container",
+                image="busybox",  # A lightweight image to run cleanup
+                command=["/bin/sh", "-c", "rm -rf /workspace/*"]  # Clean the /workspace directory before the main container runs
+            )],
             containers=[client.V1Container(
                 name="production-container",
                 image="python:3.9",
                 command=["/bin/sh", "-c"],
                 args=[
-                    "ls -la /workspace && rm -rf /workspace && "  # Delete existing directory before cloning
                     "apt update && apt install -y git && "
                     "git clone https://github.com/TejiriH/backend-im.git /workspace && "
                     "cd /workspace && pip install -r requirements.txt && python helloworld.py"
@@ -64,16 +67,27 @@ def deploy_production(commit_id):
     for _ in range(30):  # Wait up to 30 seconds
         pod_status = v1.read_namespaced_pod_status(pod_name, NAMESPACE_PROD)
         phase = pod_status.status.phase
-        if phase == "Running":
+        container_status = pod_status.status.container_statuses[0]
+
+        if phase == "Running" and container_status.state.running:
             print(f"✅ Production pod {pod_name} is running!")
             return {"status": "success", "commit_id": commit_id, "pod_name": pod_name}
-        elif phase in ["Failed", "Unknown"]:
-            print(f"❌ Production pod {pod_name} failed to start!")
+        
+        # Check if the pod has entered a crash state (CrashLoopBackOff or similar)
+        if phase == "Failed" or container_status.state.waiting and container_status.state.waiting.reason == "CrashLoopBackOff":
+            print(f"❌ Production pod {pod_name} is in CrashLoopBackOff or failed state.")
+            
+            # Read logs to identify why the pod is failing
+            pod_logs = v1.read_namespaced_pod_log(pod_name, NAMESPACE_PROD)
+            print(f"⚠️ Pod logs: {pod_logs}")
+            
             return {"status": "failed", "commit_id": commit_id, "pod_name": pod_name}
+
         time.sleep(2)  # Wait 2 seconds before checking again
 
     print(f"⚠️ Production pod {pod_name} is stuck, check logs manually.")
     return {"status": "timeout", "commit_id": commit_id, "pod_name": pod_name}
+
 
 # Function to handle test runs
 async def test_runner(websocket: WebSocket):
