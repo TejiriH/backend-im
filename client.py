@@ -3,36 +3,38 @@ import json
 import websockets
 import os
 
-commit_id = "26926471"
-
 async def send_commit():
     try:
-        # Get the commit ID from the environment variable
-        commit_id = os.getenv("COMMIT_ID")
+        # Get the commit ID from GitHub Actions environment variable
+        commit_id = os.getenv("GITHUB_SHA")
         if not commit_id:
-            print("No commit ID provided.")
+            print("❌ No commit ID provided. Ensure GITHUB_SHA is available in your GitHub Actions environment.")
             return
 
-        async with websockets.connect("ws://51.20.136.91:8080/ws") as websocket:
+        websocket_url = "ws://51.21.131.153:8080/ws"
+        async with websockets.connect(websocket_url) as websocket:
             commit_data = json.dumps({"commit_id": commit_id})
             await websocket.send(commit_data)
+            print(f"🚀 Sent commit ID: {commit_id} to {websocket_url}")
 
             while True:
                 try:
                     response = await websocket.recv()
                     data = json.loads(response)
-                    print("Response:", data)
+                    print(f"🔍 Response from WebSocket: {data}")
 
-                    # Exit when result is received
+                    # Exit when final status is received
                     if data.get("status") in ["success", "failure", "error"]:
                         break
                 except websockets.exceptions.ConnectionClosedOK:
-                    print("Connection closed by the server.")
+                    print("✅ Connection closed by the server.")
                     break
 
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"❌ Error in WebSocket connection: {e}")
 
-asyncio.run(send_commit())
+if __name__ == "__main__":
+    asyncio.run(send_commit())
+
 
 
