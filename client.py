@@ -3,6 +3,8 @@ import json
 import websockets
 import os
 
+commit_id = "26926471"
+
 async def send_commit():
     try:
         # Get the commit ID from the environment variable
