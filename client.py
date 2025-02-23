@@ -1,3 +1,8 @@
+import asyncio  # Ensure this import is present
+import json
+import websockets
+import os
+
 async def send_commit():
     try:
         commit_id = os.getenv("GITHUB_SHA")
@@ -38,6 +43,7 @@ async def send_commit():
 
 if __name__ == "__main__":
     asyncio.run(send_commit())
+
 
 
 
