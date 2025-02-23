@@ -53,7 +53,7 @@ def deploy_production(commit_id):
                     "apt update && apt install -y git && "
                     "if [ -d '/workspace/.git' ]; then cd /workspace && git pull; "
                     "else git clone https://github.com/TejiriH/backend-im.git /workspace && cd /workspace; fi && "
-                    "pip install -r requirements.txt && python helloworld.py"
+                    "pip install -r requirements.txt && python helloworld.py && tail -f /dev/null"
                 ],
                 volume_mounts=[client.V1VolumeMount(name="workspace-volume", mount_path="/workspace")]
             )],
