@@ -1,11 +1,5 @@
-import asyncio
-import json
-import websockets
-import os
-
 async def send_commit():
     try:
-        # Get the commit ID from GitHub Actions environment variable
         commit_id = os.getenv("GITHUB_SHA")
         if not commit_id:
             print("❌ No commit ID provided. Ensure GITHUB_SHA is available in your GitHub Actions environment.")
@@ -17,15 +11,24 @@ async def send_commit():
             await websocket.send(commit_data)
             print(f"🚀 Sent commit ID: {commit_id} to {websocket_url}")
 
+            test_passed = False  # Track test phase completion
+
             while True:
                 try:
                     response = await websocket.recv()
                     data = json.loads(response)
                     print(f"🔍 Response from WebSocket: {data}")
 
-                    # Exit when final status is received
                     if data.get("status") in ["success", "failure", "error"]:
-                        break
+                        if data["status"] == "success":
+                            test_passed = True  # Mark that test passed
+                        else:
+                            break  # If test failed, stop listening
+
+                    # If test passed, keep listening for production messages
+                    if test_passed and data.get("pod_name", "").startswith("production-pod-"):
+                        break  # Exit after production deployment message
+
                 except websockets.exceptions.ConnectionClosedOK:
                     print("✅ Connection closed by the server.")
                     break
@@ -35,6 +38,7 @@ async def send_commit():
 
 if __name__ == "__main__":
     asyncio.run(send_commit())
+
 
 
 
