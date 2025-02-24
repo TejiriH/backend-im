@@ -10,7 +10,7 @@ async def send_commit():
             print("❌ No commit ID provided. Ensure GITHUB_SHA is available in your GitHub Actions environment.")
             return
 
-        websocket_url = "ws://51.21.131.153:8080/ws"
+        websocket_url = "ws://51.20.89.231:8080/ws"
         async with websockets.connect(websocket_url) as websocket:
             commit_data = json.dumps({"commit_id": commit_id})
             await websocket.send(commit_data)
